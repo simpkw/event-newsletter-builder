@@ -13,12 +13,20 @@ interface Event {
 }
 
 interface EventResponse {
-  id: string;
-  name: string;
-  eventDate: string;
-  imageUrl: string;
-  ticketUrl: string;
-  venue?: string;
+  eventid: string;
+  eventname: string;
+  dates: {
+    startdate: string;
+  };
+  eventimages: {
+    large: string;
+  };
+  eventurl: string;
+  venue: {
+    name: string;
+    city: string;
+    state: string;
+  };
 }
 
 const EventNewsletterBuilder = () => {
@@ -28,6 +36,18 @@ const EventNewsletterBuilder = () => {
   const [error, setError] = useState<string | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Parse date from TicketWeb format (20250623100000) to readable format
+  const parseTicketWebDate = (dateString: string): string => {
+    try {
+      const year = dateString.substring(0, 4);
+      const month = dateString.substring(4, 6);
+      const day = dateString.substring(6, 8);
+      return `${month}/${day}/${year}`;
+    } catch {
+      return 'Date TBD';
+    }
+  };
 
   const fetchEventById = async (eventId: string) => {
     if (!eventId.trim()) {
@@ -40,10 +60,18 @@ const EventNewsletterBuilder = () => {
       setError(null);
       setSuccessMessage(null);
 
-      const response = await axios.get(`http://api.ticketweb.com/api/events/${eventId}`);
-      const eventData: EventResponse = response.data;
+      const response = await axios.get(`http://api.ticketweb.com/api/events?eventid=${eventId}`);
+      
+      // Check if events array exists and has data
+      if (!response.data.events || response.data.events.length === 0) {
+        setError('Event not found. Please check the event ID and try again.');
+        setLoading(false);
+        return;
+      }
 
-      if (events.some((e) => e.id === eventId)) {
+      const eventData: EventResponse = response.data.events[0];
+
+      if (events.some((e) => e.id === eventData.eventid)) {
         setError('This event is already added to your newsletter');
         setLoading(false);
         return;
@@ -56,24 +84,30 @@ const EventNewsletterBuilder = () => {
       }
 
       const newEvent: Event = {
-        id: eventData.id,
-        name: eventData.name,
-        date: eventData.eventDate,
-        image: eventData.imageUrl,
-        url: eventData.ticketUrl,
-        venue: eventData.venue || 'Denver, CO',
+        id: eventData.eventid,
+        name: eventData.eventname,
+        date: parseTicketWebDate(eventData.dates.startdate),
+        image: eventData.eventimages.large || 'https://via.placeholder.com/200x160?text=No+Image',
+        url: eventData.eventurl,
+        venue: `${eventData.venue.city}, ${eventData.venue.state}`,
       };
 
       setEvents([...events, newEvent]);
       setEventIdInput('');
       setSuccessMessage(`Added "${newEvent.name}" to your newsletter`);
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.status === 404) {
-        setError('Event not found. Please check the event ID and try again.');
-      } else {
-        setError('Failed to fetch event. Please try again.');
-      }
       console.error('API Error:', err);
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 404) {
+          setError('Event not found. Please check the event ID and try again.');
+        } else if (err.message === 'Network Error') {
+          setError('Network error. Please check your connection.');
+        } else {
+          setError('Failed to fetch event. Please try again.');
+        }
+      } else {
+        setError('An unexpected error occurred.');
+      }
     } finally {
       setLoading(false);
     }
@@ -87,7 +121,7 @@ const EventNewsletterBuilder = () => {
     let html = '<table class="row row-event" align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0">';
     
     for (const event of events) {
-      html += `<tbody><tr><td><table class="row-content stack" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#000;color:#000;width:600px;margin:0 auto" width="600"><tbody><tr><td class="column column-1" width="33.333333333333336%" style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:5px;padding-top:5px;vertical-align:top"><table class="image_block block-1" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td class="pad" style="width:100%"><div class="alignment" align="center"><div style="max-width:200px"><a href="${event.url}" target="_blank"><img src="${event.image}" style="display:block;height:auto;border:0;width:100%" width="200" alt="${event.name}" height="auto"></a></div></div></td></tr></table></td><td class="column column-2" width="50%" style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:5px;padding-top:5px;vertical-align:top"><table class="heading_block block-1" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td class="pad" style="text-align:center;width:100%"><h1 style="margin:0;color:#fff;direction:ltr;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;font-size:24px;font-weight:700;letter-spacing:normal;line-height:1.2;text-align:center;margin-top:0;margin-bottom:0;">${event.name}</h1></td></tr></table><table class="paragraph_block block-2" width="100%" border="0" cellpadding="10" cellspacing="0" role="presentation"><tr><td class="pad"><div style="color:#fff;direction:ltr;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;font-size:18px;font-weight:700;letter-spacing:0;line-height:1.2;text-align:center;"><p style="margin:0">${event.venue}</p></div></td></tr></table><table class="paragraph_block block-3" width="100%" border="0" cellpadding="10" cellspacing="0" role="presentation"><tr><td class="pad"><div style="color:#fff;direction:ltr;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;font-size:18px;font-weight:400;letter-spacing:0;line-height:1.2;text-align:center;"><p style="margin:0">${new Date(event.date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}</p></div></td></tr></table><table class="button_block block-4" width="100%" border="0" cellpadding="10" cellspacing="0" role="presentation"><tr><td class="pad"><div class="alignment" align="center"><a href="${event.url}" target="_blank" style="color:#000000;text-decoration:none;"><span style="background-color: #ffffff; border-radius: 4px; color: #000000; display: inline-block; font-family: Arial, Helvetica Neue, Helvetica, sans-serif; font-size: 14px; font-weight: 400; padding-bottom: 5px; padding-top: 5px; padding-left: 20px; padding-right: 20px; text-align: center;"><span style="word-break: break-word; line-height: 28px;">Buy Now</span></span></a></div></td></tr></table></td></tr></tbody></table></td></tr></tbody>`;
+      html += `<tbody><tr><td><table class="row-content stack" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#000;color:#000;width:600px;margin:0 auto" width="600"><tbody><tr><td class="column column-1" width="33.333333333333336%" style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:5px;padding-top:5px;vertical-align:top"><table class="image_block block-1" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td class="pad" style="width:100%"><div class="alignment" align="center"><div style="max-width:200px"><a href="${event.url}" target="_blank"><img src="${event.image}" style="display:block;height:auto;border:0;width:100%" width="200" alt="${event.name}" height="auto"></a></div></div></td></tr></table></td><td class="column column-2" width="50%" style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:5px;padding-top:5px;vertical-align:top"><table class="heading_block block-1" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td class="pad" style="text-align:center;width:100%"><h1 style="margin:0;color:#fff;direction:ltr;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;font-size:24px;font-weight:700;letter-spacing:normal;line-height:1.2;text-align:center;margin-top:0;margin-bottom:0;">${event.name}</h1></td></tr></table><table class="paragraph_block block-2" width="100%" border="0" cellpadding="10" cellspacing="0" role="presentation"><tr><td class="pad"><div style="color:#fff;direction:ltr;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;font-size:18px;font-weight:700;letter-spacing:0;line-height:1.2;text-align:center;"><p style="margin:0">${event.venue}</p></div></td></tr></table><table class="paragraph_block block-3" width="100%" border="0" cellpadding="10" cellspacing="0" role="presentation"><tr><td class="pad"><div style="color:#fff;direction:ltr;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;font-size:18px;font-weight:400;letter-spacing:0;line-height:1.2;text-align:center;"><p style="margin:0">${event.date}</p></div></td></tr></table><table class="button_block block-4" width="100%" border="0" cellpadding="10" cellspacing="0" role="presentation"><tr><td class="pad"><div class="alignment" align="center"><a href="${event.url}" target="_blank" style="color:#000000;text-decoration:none;"><span style="background-color: #ffffff; border-radius: 4px; color: #000000; display: inline-block; font-family: Arial, Helvetica Neue, Helvetica, sans-serif; font-size: 14px; font-weight: 400; padding-bottom: 5px; padding-top: 5px; padding-left: 20px; padding-right: 20px; text-align: center;"><span style="word-break: break-word; line-height: 28px;">Buy Tickets</span></span></a></div></td></tr></table></td></tr></tbody></table></td></tr></tbody>`;
     }
 
     html += '</table>';
@@ -148,7 +182,7 @@ const EventNewsletterBuilder = () => {
                     value={eventIdInput}
                     onChange={(e) => setEventIdInput(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="Enter event ID (e.g., 1E0064428BC53A49)"
+                    placeholder="Enter event ID (e.g., 13829814)"
                     className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     disabled={loading || events.length >= 10}
                   />
@@ -221,14 +255,7 @@ const EventNewsletterBuilder = () => {
                       <div className="p-4">
                         <h3 className="font-bold mb-2 line-clamp-2">{event.name}</h3>
                         <div className="space-y-1 text-sm text-gray-400 mb-3">
-                          <p>
-                            📅{' '}
-                            {new Date(event.date).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })}
-                          </p>
+                          <p>📅 {event.date}</p>
                           <p>📍 {event.venue}</p>
                           <p className="text-gray-500 text-xs">ID: {event.id}</p>
                         </div>
