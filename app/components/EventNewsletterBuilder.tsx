@@ -60,7 +60,7 @@ const EventNewsletterBuilder = () => {
       setError(null);
       setSuccessMessage(null);
 
-      const response = await axios.get(`http://api.ticketweb.com/api/events?eventid=${eventId}`);
+      const response = await axios.get(`/api/events?eventid=${eventId}`);
       
       // Check if events array exists and has data
       if (!response.data.events || response.data.events.length === 0) {
