@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import axios from 'axios';
 
 interface Event {
@@ -36,10 +36,18 @@ const EventNewsletterBuilder = () => {
   const [error, setError] = useState<string | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [newsletterTitle, setNewsletterTitle] = useState('THE WEEKLY MIX');
+  const [newsletterCity, setNewsletterCity] = useState('DENVER');
 
-  // Parse date from TicketWeb format (20250623100000) to readable format
+  // Parse date from Ticketmaster ISO format (2025-06-23) to readable format
   const parseTicketWebDate = (dateString: string): string => {
     try {
+      if (dateString.includes('-')) {
+        // ISO format: 2025-06-23
+        const [year, month, day] = dateString.split('-');
+        return `${month}/${day}/${year}`;
+      }
+      // Legacy compact format: 20250623100000
       const year = dateString.substring(0, 4);
       const month = dateString.substring(4, 6);
       const day = dateString.substring(6, 8);
@@ -98,12 +106,20 @@ const EventNewsletterBuilder = () => {
     } catch (err) {
       console.error('API Error:', err);
       if (axios.isAxiosError(err)) {
+        // Surface the server's error message if present
+        const serverMessage = err.response?.data?.error as string | undefined;
         if (err.response?.status === 404) {
-          setError('Event not found. Please check the event ID and try again.');
+          setError(serverMessage || 'Event not found. Please check the event ID and try again.');
+        } else if (err.response?.status === 401 || err.response?.status === 403) {
+          setError(serverMessage || 'Invalid API key. Check your Ticketmaster API key in the environment settings.');
+        } else if (err.response?.status === 429) {
+          setError(serverMessage || 'Rate limit reached. Please wait a moment and try again.');
+        } else if (err.response?.status === 500 && serverMessage) {
+          setError(serverMessage);
         } else if (err.message === 'Network Error') {
           setError('Network error. Please check your connection.');
         } else {
-          setError('Failed to fetch event. Please try again.');
+          setError(serverMessage || 'Failed to fetch event. Please try again.');
         }
       } else {
         setError('An unexpected error occurred.');
@@ -117,7 +133,7 @@ const EventNewsletterBuilder = () => {
     setEvents(events.filter((e) => e.id !== eventId));
   };
 
-  const generateNewsletterHTML = () => {
+  const generateNewsletterHTML = useCallback(() => {
     let html = '<table class="row row-event" align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0">';
     
     for (const event of events) {
@@ -126,10 +142,10 @@ const EventNewsletterBuilder = () => {
 
     html += '</table>';
 
-    const fullHTML = `<!DOCTYPE html><html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en"><head><title>Event Newsletter</title><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{box-sizing:border-box}body{margin:0;padding:0}a[x-apple-data-detectors]{color:inherit!important;text-decoration:inherit!important}#MessageViewBody a{color:inherit;text-decoration:none}p{line-height:inherit}.desktop_hide,.desktop_hide table{mso-hide:all;display:none;max-height:0;overflow:hidden}.image_block img+div{display:none}sub,sup{font-size:75%;line-height:0}@media (max-width:620px){.mobile_hide{display:none}.row-content{width:100%!important}.stack .column{width:100%;display:block}.mobile_hide{min-height:0;max-height:0;max-width:0;overflow:hidden;font-size:0}.desktop_hide,.desktop_hide table{display:table!important;max-height:none!important}}</style></head><body class="body" style="background-color:#ebebeb;margin:0;padding:0;-webkit-text-size-adjust:none;text-size-adjust:none"><table class="nl-container" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#ebebeb"><tbody><tr><td><table class="row row-1" align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0"><tbody><tr><td><table class="row-content stack" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#000;border-radius:0;color:#000;width:600px;margin:0 auto" width="600"><tbody><tr><td class="column column-1" width="100%" style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:5px;padding-top:5px;vertical-align:top"><table class="text_block block-1" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td class="pad" style="padding-left:10px;padding-right:10px;padding-top:25px"><div style="font-family:sans-serif"><div style="font-size:14px;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;mso-line-height-alt:16.8px;color:#555;line-height:1.2"><p style="margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px"><span style="word-break: break-word; font-size: 16px;"><em><span style="word-break: break-word; color: #ffffff;">THE WEEKLY MIX</span></em></span></p><p style="margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px"><span style="word-break: break-word; font-size: 46px;"><strong><span style="word-break: break-word; color: #ffffff;">DENVER</span></strong></span></p></div></div></td></tr></table></td></tr></tbody></table></td></tr></tbody></table></td></tr></tbody></table><table class="row row-2" align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0"><tbody><tr><td><table class="row-content stack" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#000;border-radius:0;color:#000;width:600px;margin:0 auto" width="600"><tbody><tr><td class="column column-1" width="100%" style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:5px;padding-top:5px;vertical-align:top"><table class="text_block block-2" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;word-break:break-word"><tr><td class="pad" style="padding-bottom:20px;padding-left:10px;padding-right:10px;padding-top:10px"><div style="font-family:sans-serif"><div style="font-size:14px;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;mso-line-height-alt:16.8px;color:#555;line-height:1.2"><p style="margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px"><span style="word-break: break-word; font-size: 24px;"><strong><span style="word-break: break-word; color: #ffffff;">COMING SOON</span></strong></span></p></div></div></td></tr></table></td></tr></tbody></table></td></tr></tbody></table>${html}<tr><td><table class="row row-footer" align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#ebebeb"><tbody><tr><td><table class="row-content stack" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#000;color:#000;width:600px;margin:0 auto" width="600"><tbody><tr><td class="column column-1" width="100%" style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;vertical-align:top;padding-bottom:5px;padding-top:5px;"><table class="text_block block-1" width="100%" border="0" cellpadding="10" cellspacing="0" role="presentation"><tr><td class="pad"><div style="font-family:sans-serif"><div style="font-size:12px;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;mso-line-height-alt:14.4px;color:#555;line-height:1.2"><p style="margin:0;text-align:center;font-size:10px;color:#ffffff;">FIND YOUR NEXT EVENT HERE</p><p style="margin:0;text-align:center;font-size:10px;color:#ffffff;margin-top:10px;">© 2026 Events. All rights reserved.</p></div></div></td></tr></table></td></tr></tbody></table></td></tr></tbody></table></td></tr></tbody></table></body></html>`;
+    const fullHTML = `<!DOCTYPE html><html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en"><head><title>Event Newsletter</title><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{box-sizing:border-box}body{margin:0;padding:0}a[x-apple-data-detectors]{color:inherit!important;text-decoration:inherit!important}#MessageViewBody a{color:inherit;text-decoration:none}p{line-height:inherit}.desktop_hide,.desktop_hide table{mso-hide:all;display:none;max-height:0;overflow:hidden}.image_block img+div{display:none}sub,sup{font-size:75%;line-height:0}@media (max-width:620px){.mobile_hide{display:none}.row-content{width:100%!important}.stack .column{width:100%;display:block}.mobile_hide{min-height:0;max-height:0;max-width:0;overflow:hidden;font-size:0}.desktop_hide,.desktop_hide table{display:table!important;max-height:none!important}}</style></head><body class="body" style="background-color:#ebebeb;margin:0;padding:0;-webkit-text-size-adjust:none;text-size-adjust:none"><table class="nl-container" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#ebebeb"><tbody><tr><td><table class="row row-1" align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0"><tbody><tr><td><table class="row-content stack" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#000;border-radius:0;color:#000;width:600px;margin:0 auto" width="600"><tbody><tr><td class="column column-1" width="100%" style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:5px;padding-top:5px;vertical-align:top"><table class="text_block block-1" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td class="pad" style="padding-left:10px;padding-right:10px;padding-top:25px"><div style="font-family:sans-serif"><div style="font-size:14px;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;mso-line-height-alt:16.8px;color:#555;line-height:1.2"><p style="margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px"><span style="word-break: break-word; font-size: 16px;"><em><span style="word-break: break-word; color: #ffffff;">${newsletterTitle}</span></em></span></p><p style="margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px"><span style="word-break: break-word; font-size: 46px;"><strong><span style="word-break: break-word; color: #ffffff;">${newsletterCity}</span></strong></span></p></div></div></td></tr></table></td></tr></tbody></table></td></tr></tbody></table></td></tr></tbody></table><table class="row row-2" align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0"><tbody><tr><td><table class="row-content stack" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#000;border-radius:0;color:#000;width:600px;margin:0 auto" width="600"><tbody><tr><td class="column column-1" width="100%" style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:5px;padding-top:5px;vertical-align:top"><table class="text_block block-2" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;word-break:break-word"><tr><td class="pad" style="padding-bottom:20px;padding-left:10px;padding-right:10px;padding-top:10px"><div style="font-family:sans-serif"><div style="font-size:14px;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;mso-line-height-alt:16.8px;color:#555;line-height:1.2"><p style="margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px"><span style="word-break: break-word; font-size: 24px;"><strong><span style="word-break: break-word; color: #ffffff;">COMING SOON</span></strong></span></p></div></div></td></tr></table></td></tr></tbody></table></td></tr></tbody></table>${html}<tr><td><table class="row row-footer" align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#ebebeb"><tbody><tr><td><table class="row-content stack" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#000;color:#000;width:600px;margin:0 auto" width="600"><tbody><tr><td class="column column-1" width="100%" style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;vertical-align:top;padding-bottom:5px;padding-top:5px;"><table class="text_block block-1" width="100%" border="0" cellpadding="10" cellspacing="0" role="presentation"><tr><td class="pad"><div style="font-family:sans-serif"><div style="font-size:12px;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;mso-line-height-alt:14.4px;color:#555;line-height:1.2"><p style="margin:0;text-align:center;font-size:10px;color:#ffffff;">FIND YOUR NEXT EVENT HERE</p><p style="margin:0;text-align:center;font-size:10px;color:#ffffff;margin-top:10px;">© 2026 Events. All rights reserved.</p></div></div></td></tr></table></td></tr></tbody></table></td></tr></tbody></table></td></tr></tbody></table></body></html>`;
 
     return fullHTML;
-  };
+  }, [events, newsletterTitle, newsletterCity]);
 
   const exportHTML = () => {
     const htmlContent = generateNewsletterHTML();
@@ -173,27 +189,51 @@ const EventNewsletterBuilder = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1">
             <div className="bg-gray-800 rounded-lg p-6 sticky top-8">
-              <h2 className="text-xl font-bold mb-4">Add Events</h2>
+              <h2 className="text-xl font-bold mb-4">Newsletter Settings</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Event ID</label>
+                  <label className="block text-sm font-semibold mb-2">Newsletter Title</label>
                   <input
                     type="text"
-                    value={eventIdInput}
-                    onChange={(e) => setEventIdInput(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Enter event ID (e.g., 13829814)"
+                    value={newsletterTitle}
+                    onChange={(e) => setNewsletterTitle(e.target.value)}
+                    placeholder="e.g., THE WEEKLY MIX"
                     className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    disabled={loading || events.length >= 10}
                   />
                 </div>
-                <button
-                  onClick={() => fetchEventById(eventIdInput)}
-                  disabled={loading || events.length >= 10}
-                  className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-semibold transition"
-                >
-                  {loading ? 'Loading...' : 'Add Event'}
-                </button>
+                <div>
+                  <label className="block text-sm font-semibold mb-2">City / Location</label>
+                  <input
+                    type="text"
+                    value={newsletterCity}
+                    onChange={(e) => setNewsletterCity(e.target.value)}
+                    placeholder="e.g., DENVER"
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div className="pt-2 border-t border-gray-700">
+                  <h3 className="text-lg font-bold mb-3 pt-2">Add Events</h3>
+                  <div>
+                    <label className="block text-sm font-semibold mb-2">Event ID</label>
+                    <input
+                      type="text"
+                      value={eventIdInput}
+                      onChange={(e) => setEventIdInput(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder="Enter event ID (e.g., 13829814)"
+                      className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      disabled={loading || events.length >= 10}
+                    />
+                  </div>
+                  <button
+                    onClick={() => fetchEventById(eventIdInput)}
+                    disabled={loading || events.length >= 10}
+                    className="w-full mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-semibold transition"
+                  >
+                    {loading ? 'Loading...' : 'Add Event'}
+                  </button>
+                </div>
 
                 <div className="pt-4 border-t border-gray-700">
                   <p className="text-sm text-gray-400 mb-3">
@@ -277,8 +317,14 @@ const EventNewsletterBuilder = () => {
         {previewMode && events.length > 0 && (
           <div className="mt-8 bg-gray-800 rounded-lg p-6">
             <h2 className="text-2xl font-bold mb-4">Newsletter Preview</h2>
-            <div className="bg-white rounded overflow-hidden shadow-lg text-center text-gray-600 p-4">
-              <p>Preview will display here when viewing in a browser. Click "Export HTML" to download your newsletter.</p>
+            <div className="bg-white rounded overflow-hidden shadow-lg">
+              <iframe
+                srcDoc={generateNewsletterHTML()}
+                title="Newsletter Preview"
+                className="w-full border-0"
+                style={{ height: '600px' }}
+                sandbox=""
+              />
             </div>
           </div>
         )}
