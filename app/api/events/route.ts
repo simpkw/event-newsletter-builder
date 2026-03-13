@@ -10,11 +10,17 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  const apiKey = process.env.TICKETMASTER_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json(
+      { error: 'TICKETMASTER_API_KEY is not configured. Add it to your .env.local file.' },
+      { status: 500 }
+    );
+  }
+
   try {
-    console.log(`Fetching event: ${eventId}`);
-    
     const response = await fetch(
-      `http://api.ticketweb.com/api/events?eventid=${eventId}`,
+      `https://app.ticketmaster.com/discovery/v2/events/${encodeURIComponent(eventId)}.json?apikey=${apiKey}`,
       {
         headers: {
           'Accept': 'application/json',
@@ -22,13 +28,11 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    console.log(`Response status: ${response.status}`);
     const data = await response.json();
-    console.log(`Response data:`, data);
 
     if (!response.ok) {
       return NextResponse.json(
-        { error: 'Event not found', details: data },
+        { error: data?.fault?.faultstring ?? 'Event not found', details: data },
         { status: response.status }
       );
     }
