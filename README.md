@@ -67,12 +67,14 @@ The app is a standard Next.js 14 project and deploys to Vercel with **zero confi
 
 ### What to test after deployment
 
-- Open the deployed URL and confirm the page loads.
-- Enter a TicketWeb event ID (e.g. `13829814`) and click **Add Event** — the `/api/events` serverless function should proxy the TicketWeb API and return event data.
-- Add a few events, toggle **Show Preview**, and verify the newsletter renders inside the page.
-- Click **Export HTML** and confirm the downloaded file opens correctly in a browser.
+The following features work correctly on a Vercel deployment:
 
-> **Note:** The TicketWeb API endpoint (`http://api.ticketweb.com`) uses plain HTTP. Vercel serverless functions make outbound requests server-side, so there is no mixed-content issue in the browser.
+- ✅ The page loads and the newsletter builder UI is fully functional.
+- ✅ The **Newsletter Title** and **City / Location** fields can be edited.
+- ✅ **Show Preview** renders a live preview of the newsletter inside the page.
+- ✅ **Export HTML** downloads an email-ready `.html` file.
+
+> ⚠️ **Known limitation — event fetching:** The TicketWeb API (`http://api.ticketweb.com`) is currently **unreachable** (the hostname does not resolve). Clicking **Add Event** will return an error both locally and on Vercel. This is an upstream issue with the TicketWeb service, not with the app or the Vercel deployment. You can still build and export newsletters using events that have already been added to the list.
 
 ## Project Structure
 

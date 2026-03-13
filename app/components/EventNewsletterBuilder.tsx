@@ -309,7 +309,7 @@ const EventNewsletterBuilder = () => {
                 title="Newsletter Preview"
                 className="w-full border-0"
                 style={{ height: '600px' }}
-                sandbox="allow-same-origin"
+                sandbox=""
               />
             </div>
           </div>
