@@ -10,11 +10,19 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  const apiKey = process.env.TICKETWEB_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json(
+      { error: 'Server is not configured: TICKETWEB_API_KEY environment variable is missing' },
+      { status: 500 }
+    );
+  }
+
   try {
     console.log(`Fetching event: ${eventId}`);
-    
+
     const response = await fetch(
-      `http://api.ticketweb.com/api/events?eventid=${eventId}`,
+      `http://api.ticketweb.com/api/events?eventid=${eventId}&apikey=${apiKey}`,
       {
         headers: {
           'Accept': 'application/json',
