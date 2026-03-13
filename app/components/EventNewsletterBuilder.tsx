@@ -39,9 +39,15 @@ const EventNewsletterBuilder = () => {
   const [newsletterTitle, setNewsletterTitle] = useState('THE WEEKLY MIX');
   const [newsletterCity, setNewsletterCity] = useState('DENVER');
 
-  // Parse date from TicketWeb format (20250623100000) to readable format
+  // Parse date from Ticketmaster ISO format (2025-06-23) to readable format
   const parseTicketWebDate = (dateString: string): string => {
     try {
+      if (dateString.includes('-')) {
+        // ISO format: 2025-06-23
+        const [year, month, day] = dateString.split('-');
+        return `${month}/${day}/${year}`;
+      }
+      // Legacy compact format: 20250623100000
       const year = dateString.substring(0, 4);
       const month = dateString.substring(4, 6);
       const day = dateString.substring(6, 8);

@@ -10,10 +10,10 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const apiKey = process.env.TICKETWEB_API_KEY;
+  const apiKey = process.env.TICKETMASTER_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
-      { error: 'Server is not configured: TICKETWEB_API_KEY environment variable is missing' },
+      { error: 'Server is not configured: TICKETMASTER_API_KEY environment variable is missing' },
       { status: 500 }
     );
   }
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     console.log(`Fetching event: ${eventId}`);
 
     const response = await fetch(
-      `http://api.ticketweb.com/api/events?eventid=${eventId}&apikey=${apiKey}`,
+      `https://app.ticketmaster.com/discovery/v2/events/${encodeURIComponent(eventId)}.json?apikey=${apiKey}`,
       {
         headers: {
           'Accept': 'application/json',
@@ -31,17 +31,57 @@ export async function GET(request: NextRequest) {
     );
 
     console.log(`Response status: ${response.status}`);
-    const data = await response.json();
-    console.log(`Response data:`, data);
+
+    if (response.status === 404) {
+      return NextResponse.json(
+        { error: 'Event not found' },
+        { status: 404 }
+      );
+    }
 
     if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
       return NextResponse.json(
-        { error: 'Event not found', details: data },
+        { error: 'Event not found', details: errData },
         { status: response.status }
       );
     }
 
-    return NextResponse.json(data);
+    const data = await response.json();
+    console.log(`Response data:`, data);
+
+    // Select the best image: prefer 16_9 ratio at ≥640 px wide, then any 16_9, then first available
+    const images: Array<{ url: string; width?: number | string; ratio?: string }> = data.images || [];
+    const bestImage =
+      images.find((img) => img.ratio === '16_9' && Number(img.width) >= 640) ||
+      images.find((img) => img.ratio === '16_9') ||
+      images[0];
+
+    const venue = data._embedded?.venues?.[0];
+
+    // Transform into the shape the component's EventResponse interface expects
+    const transformed = {
+      events: [
+        {
+          eventid: data.id,
+          eventname: data.name,
+          dates: {
+            startdate: data.dates?.start?.localDate || '',
+          },
+          eventimages: {
+            large: bestImage?.url || '',
+          },
+          eventurl: data.url,
+          venue: {
+            name: venue?.name || '',
+            city: venue?.city?.name || '',
+            state: venue?.state?.stateCode || '',
+          },
+        },
+      ],
+    };
+
+    return NextResponse.json(transformed);
   } catch (error) {
     console.error('API Error:', error);
     return NextResponse.json(
