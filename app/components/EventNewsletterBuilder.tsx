@@ -83,7 +83,7 @@ const EventNewsletterBuilder = () => {
     setEvents(events.filter((e) => e.id !== eventId));
   };
 
-  const generateNewsletterHTML = () => {
+  const generateNewsletterHTML = (): string => {
     const eventCardsHTML = events
       .map(
         (event) => `
@@ -197,7 +197,7 @@ const EventNewsletterBuilder = () => {
       )
       .join('');
 
-    const fullHTML = `<!DOCTYPE html>
+    return `<!DOCTYPE html>
 <html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en">
 <head>
   <title>Event Newsletter</title>
@@ -317,8 +317,6 @@ const EventNewsletterBuilder = () => {
   </table>
 </body>
 </html>`;
-
-    return fullHTML;
   };
 
   const exportHTML = () => {
@@ -332,11 +330,13 @@ const EventNewsletterBuilder = () => {
     document.body.removeChild(element);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       fetchEventById(eventIdInput);
     }
   };
+
+  const htmlContent = previewMode && events.length > 0 ? generateNewsletterHTML() : '';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-8">
@@ -475,13 +475,13 @@ const EventNewsletterBuilder = () => {
           </div>
         </div>
 
-        {previewMode && events.length > 0 && (
+        {previewMode && events.length > 0 && htmlContent && (
           <div className="mt-8 bg-gray-800 rounded-lg p-6">
             <h2 className="text-2xl font-bold mb-4">Newsletter Preview</h2>
             <div className="bg-white rounded overflow-hidden shadow-lg" style={{ maxHeight: '800px' }}>
               <iframe
                 title="newsletter-preview"
-                srcDoc={generateNewsletterHTML()}
+                srcDoc={htmlContent}
                 style={{ width: '100%', height: '800px', border: 'none' }}
               />
             </div>
