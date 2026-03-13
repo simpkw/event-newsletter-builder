@@ -34,15 +34,29 @@ export async function GET(request: NextRequest) {
 
     if (response.status === 404) {
       return NextResponse.json(
-        { error: 'Event not found' },
+        { error: 'Event not found. Please check the event ID and try again.' },
         { status: 404 }
+      );
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return NextResponse.json(
+        { error: 'Invalid Ticketmaster API key. Please check the TICKETMASTER_API_KEY value in your environment settings.' },
+        { status: 401 }
+      );
+    }
+
+    if (response.status === 429) {
+      return NextResponse.json(
+        { error: 'Ticketmaster API rate limit reached. Please wait a moment and try again.' },
+        { status: 429 }
       );
     }
 
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
       return NextResponse.json(
-        { error: 'Event not found', details: errData },
+        { error: `Ticketmaster API error (status ${response.status})`, details: errData },
         { status: response.status }
       );
     }

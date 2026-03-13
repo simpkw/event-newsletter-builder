@@ -106,12 +106,20 @@ const EventNewsletterBuilder = () => {
     } catch (err) {
       console.error('API Error:', err);
       if (axios.isAxiosError(err)) {
+        // Surface the server's error message if present
+        const serverMessage = err.response?.data?.error as string | undefined;
         if (err.response?.status === 404) {
-          setError('Event not found. Please check the event ID and try again.');
+          setError(serverMessage || 'Event not found. Please check the event ID and try again.');
+        } else if (err.response?.status === 401 || err.response?.status === 403) {
+          setError(serverMessage || 'Invalid API key. Check your Ticketmaster API key in the environment settings.');
+        } else if (err.response?.status === 429) {
+          setError(serverMessage || 'Rate limit reached. Please wait a moment and try again.');
+        } else if (err.response?.status === 500 && serverMessage) {
+          setError(serverMessage);
         } else if (err.message === 'Network Error') {
           setError('Network error. Please check your connection.');
         } else {
-          setError('Failed to fetch event. Please try again.');
+          setError(serverMessage || 'Failed to fetch event. Please try again.');
         }
       } else {
         setError('An unexpected error occurred.');
