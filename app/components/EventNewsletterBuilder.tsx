@@ -12,29 +12,20 @@ interface Event {
   venue?: string;
 }
 
-// Ticketmaster Discovery API event shape
 interface EventResponse {
-  id: string;
-  name: string;
-  url: string;
+  eventid: string;
+  eventname: string;
   dates: {
-    start: {
-      localDate: string;
-      localTime?: string;
-    };
+    startdate: string;
   };
-  images: Array<{
-    url: string;
-    ratio?: string;
-    width?: number;
-    height?: number;
-  }>;
-  _embedded?: {
-    venues?: Array<{
-      name?: string;
-      city?: { name: string };
-      state?: { stateCode: string; name: string };
-    }>;
+  eventimages: {
+    large: string;
+  };
+  eventurl: string;
+  venue: {
+    name: string;
+    city: string;
+    state: string;
   };
 }
 
@@ -48,12 +39,12 @@ const EventNewsletterBuilder = () => {
   const [newsletterTitle, setNewsletterTitle] = useState('THE WEEKLY MIX');
   const [newsletterCity, setNewsletterCity] = useState('DENVER');
 
-  // Parse date from Ticketmaster ISO format (2025-06-23) to readable format
-  const parseDate = (dateString: string): string => {
+  // Parse date from TicketWeb format (20250623100000) to readable format
+  const parseTicketWebDate = (dateString: string): string => {
     try {
-      const parts = dateString.split('-');
-      if (parts.length !== 3) return 'Date TBD';
-      const [year, month, day] = parts;
+      const year = dateString.substring(0, 4);
+      const month = dateString.substring(4, 6);
+      const day = dateString.substring(6, 8);
       return `${month}/${day}/${year}`;
     } catch {
       return 'Date TBD';
@@ -73,16 +64,16 @@ const EventNewsletterBuilder = () => {
 
       const response = await axios.get(`/api/events?eventid=${eventId}`);
       
-      const eventData: EventResponse = response.data;
-
-      // Ticketmaster returns `id` and `name` at the top level
-      if (!eventData.id || !eventData.name) {
+      // Check if events array exists and has data
+      if (!response.data.events || response.data.events.length === 0) {
         setError('Event not found. Please check the event ID and try again.');
         setLoading(false);
         return;
       }
 
-      if (events.some((e) => e.id === eventData.id)) {
+      const eventData: EventResponse = response.data.events[0];
+
+      if (events.some((e) => e.id === eventData.eventid)) {
         setError('This event is already added to your newsletter');
         setLoading(false);
         return;
@@ -94,23 +85,13 @@ const EventNewsletterBuilder = () => {
         return;
       }
 
-      // Pick the best available image: prefer 4_3 ratio, fall back to first
-      const bestImage =
-        eventData.images?.find((img) => img.ratio === '4_3') ??
-        eventData.images?.[0];
-
-      const venue = eventData._embedded?.venues?.[0];
-      const venueLabel = venue
-        ? [venue.city?.name, venue.state?.stateCode].filter(Boolean).join(', ') || 'Venue TBD'
-        : 'Venue TBD';
-
       const newEvent: Event = {
-        id: eventData.id,
-        name: eventData.name,
-        date: parseDate(eventData.dates.start.localDate),
-        image: bestImage?.url ?? 'https://via.placeholder.com/200x160?text=No+Image',
-        url: eventData.url,
-        venue: venueLabel,
+        id: eventData.eventid,
+        name: eventData.eventname,
+        date: parseTicketWebDate(eventData.dates.startdate),
+        image: eventData.eventimages.large || 'https://via.placeholder.com/200x160?text=No+Image',
+        url: eventData.eventurl,
+        venue: `${eventData.venue.city}, ${eventData.venue.state}`,
       };
 
       setEvents([...events, newEvent]);
@@ -119,13 +100,8 @@ const EventNewsletterBuilder = () => {
     } catch (err) {
       console.error('API Error:', err);
       if (axios.isAxiosError(err)) {
-        const apiError = err.response?.data?.error as string | undefined;
         if (err.response?.status === 404) {
           setError('Event not found. Please check the event ID and try again.');
-        } else if (err.response?.status === 401) {
-          setError('Invalid API key. Please check your TICKETMASTER_API_KEY configuration.');
-        } else if (apiError) {
-          setError(apiError);
         } else if (err.message === 'Network Error') {
           setError('Network error. Please check your connection.');
         } else {
