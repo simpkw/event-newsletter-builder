@@ -83,240 +83,18 @@ const EventNewsletterBuilder = () => {
     setEvents(events.filter((e) => e.id !== eventId));
   };
 
-  const generateNewsletterHTML = (): string => {
-    const eventCardsHTML = events
-      .map(
-        (event) => `
-      <table class="row row-event" align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0">
-        <tbody>
-          <tr>
-            <td>
-              <table class="row-content stack" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#000;color:#000;width:600px;margin:0 auto" width="600">
-                <tbody>
-                  <tr>
-                    <td class="column column-1" width="33.333333333333336%" style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:5px;padding-top:5px;vertical-align:top">
-                      <table class="image_block block-1" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
-                        <tr>
-                          <td class="pad" style="width:100%">
-                            <div class="alignment" align="center">
-                              <div style="max-width:200px">
-                                <a href="${event.url}" target="_blank">
-                                  <img src="${event.image}" style="display:block;height:auto;border:0;width:100%" width="200" alt="${event.name}" height="auto">
-                                </a>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                    <td class="column column-2" width="50%" style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:5px;padding-top:5px;vertical-align:top">
-                      <table class="heading_block block-1" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
-                        <tr>
-                          <td class="pad" style="text-align:center;width:100%">
-                            <h1 style="margin:0;color:#fff;direction:ltr;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;font-size:24px;font-weight:700;letter-spacing:normal;line-height:1.2;text-align:center;margin-top:0;margin-bottom:0;">
-                              ${event.name}
-                            </h1>
-                          </td>
-                        </tr>
-                      </table>
-                      <table class="paragraph_block block-2" width="100%" border="0" cellpadding="10" cellspacing="0" role="presentation">
-                        <tr>
-                          <td class="pad">
-                            <div style="color:#fff;direction:ltr;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;font-size:18px;font-weight:700;letter-spacing:0;line-height:1.2;text-align:center;">
-                              <p style="margin:0">${event.venue || 'Denver, CO'}</p>
-                            </div>
-                          </td>
-                        </tr>
-                      </table>
-                      <table class="paragraph_block block-3" width="100%" border="0" cellpadding="10" cellspacing="0" role="presentation">
-                        <tr>
-                          <td class="pad">
-                            <div style="color:#fff;direction:ltr;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;font-size:18px;font-weight:400;letter-spacing:0;line-height:1.2;text-align:center;">
-                              <p style="margin:0">${new Date(event.date).toLocaleDateString('en-US', {
-                                month: '2-digit',
-                                day: '2-digit',
-                                year: 'numeric',
-                              })}</p>
-                            </div>
-                          </td>
-                        </tr>
-                      </table>
-                      <table class="button_block block-4" width="100%" border="0" cellpadding="10" cellspacing="0" role="presentation">
-                        <tr>
-                          <td class="pad">
-                            <div class="alignment" align="center">
-                              <a href="${event.url}" target="_blank" style="color:#000000;text-decoration:none;">
-                                <span style="background-color: #ffffff; border-bottom: 0px solid transparent; border-left: 0px solid transparent; border-radius: 4px; border-right: 0px solid transparent; border-top: 0px solid transparent; color: #000000; display: inline-block; font-family: Arial, Helvetica Neue, Helvetica, sans-serif; font-size: 14px; font-weight: 400; mso-border-alt: none; padding-bottom: 5px; padding-top: 5px; padding-left: 20px; padding-right: 20px; text-align: center; width: auto; word-break: keep-all; letter-spacing: normal;">
-                                  <span style="word-break: break-word; line-height: 28px;">Buy Now</span>
-                                </span>
-                              </a>
-                            </div>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <table class="row row-divider" align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0">
-        <tbody>
-          <tr>
-            <td>
-              <table class="row-content stack" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#000;color:#000;width:600px;margin:0 auto" width="600">
-                <tbody>
-                  <tr>
-                    <td class="column column-1" width="100%" style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;vertical-align:top">
-                      <table class="divider_block block-1" width="100%" border="0" cellpadding="10" cellspacing="0" role="presentation">
-                        <tr>
-                          <td class="pad">
-                            <div class="alignment" align="center">
-                              <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="70%">
-                                <tr>
-                                  <td class="divider_inner" style="font-size:1px;line-height:1px;border-top:1px solid #fff">
-                                    <span style="word-break: break-word;">&#8202;</span>
-                                  </td>
-                                </tr>
-                              </table>
-                            </div>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    `
-      )
-      .join('');
+  const generateNewsletterHTML = () => {
+    let html = '<table class="row row-event" align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0">';
+    
+    for (const event of events) {
+      html += `<tbody><tr><td><table class="row-content stack" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#000;color:#000;width:600px;margin:0 auto" width="600"><tbody><tr><td class="column column-1" width="33.333333333333336%" style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:5px;padding-top:5px;vertical-align:top"><table class="image_block block-1" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td class="pad" style="width:100%"><div class="alignment" align="center"><div style="max-width:200px"><a href="${event.url}" target="_blank"><img src="${event.image}" style="display:block;height:auto;border:0;width:100%" width="200" alt="${event.name}" height="auto"></a></div></div></td></tr></table></td><td class="column column-2" width="50%" style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:5px;padding-top:5px;vertical-align:top"><table class="heading_block block-1" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td class="pad" style="text-align:center;width:100%"><h1 style="margin:0;color:#fff;direction:ltr;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;font-size:24px;font-weight:700;letter-spacing:normal;line-height:1.2;text-align:center;margin-top:0;margin-bottom:0;">${event.name}</h1></td></tr></table><table class="paragraph_block block-2" width="100%" border="0" cellpadding="10" cellspacing="0" role="presentation"><tr><td class="pad"><div style="color:#fff;direction:ltr;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;font-size:18px;font-weight:700;letter-spacing:0;line-height:1.2;text-align:center;"><p style="margin:0">${event.venue}</p></div></td></tr></table><table class="paragraph_block block-3" width="100%" border="0" cellpadding="10" cellspacing="0" role="presentation"><tr><td class="pad"><div style="color:#fff;direction:ltr;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;font-size:18px;font-weight:400;letter-spacing:0;line-height:1.2;text-align:center;"><p style="margin:0">${new Date(event.date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}</p></div></td></tr></table><table class="button_block block-4" width="100%" border="0" cellpadding="10" cellspacing="0" role="presentation"><tr><td class="pad"><div class="alignment" align="center"><a href="${event.url}" target="_blank" style="color:#000000;text-decoration:none;"><span style="background-color: #ffffff; border-radius: 4px; color: #000000; display: inline-block; font-family: Arial, Helvetica Neue, Helvetica, sans-serif; font-size: 14px; font-weight: 400; padding-bottom: 5px; padding-top: 5px; padding-left: 20px; padding-right: 20px; text-align: center;"><span style="word-break: break-word; line-height: 28px;">Buy Now</span></span></a></div></td></tr></table></td></tr></tbody></table></td></tr></tbody>`;
+    }
 
-    return `<!DOCTYPE html>
-<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en">
-<head>
-  <title>Event Newsletter</title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <style>
-    *{box-sizing:border-box}body{margin:0;padding:0}a[x-apple-data-detectors]{color:inherit!important;text-decoration:inherit!important}#MessageViewBody a{color:inherit;text-decoration:none}p{line-height:inherit}.desktop_hide,.desktop_hide table{mso-hide:all;display:none;max-height:0;overflow:hidden}.image_block img+div{display:none}sub,sup{font-size:75%;line-height:0}
-    @media (max-width:620px){.mobile_hide{display:none}.row-content{width:100%!important}.stack .column{width:100%;display:block}.mobile_hide{min-height:0;max-height:0;max-width:0;overflow:hidden;font-size:0}.desktop_hide,.desktop_hide table{display:table!important;max-height:none!important}}
-  </style>
-</head>
-<body class="body" style="background-color:#ebebeb;margin:0;padding:0;-webkit-text-size-adjust:none;text-size-adjust:none">
-  <table class="nl-container" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#ebebeb">
-    <tbody>
-      <tr>
-        <td>
-          <table class="row row-1" align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0">
-            <tbody>
-              <tr>
-                <td>
-                  <table class="row-content stack" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#000;border-radius:0;color:#000;width:600px;margin:0 auto" width="600">
-                    <tbody>
-                      <tr>
-                        <td class="column column-1" width="100%" style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:5px;padding-top:5px;vertical-align:top">
-                          <table class="text_block block-1" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
-                            <tr>
-                              <td class="pad" style="padding-left:10px;padding-right:10px;padding-top:25px">
-                                <div style="font-family:sans-serif">
-                                  <div style="font-size:14px;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;mso-line-height-alt:16.8px;color:#555;line-height:1.2">
-                                    <p style="margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px">
-                                      <span style="word-break: break-word; font-size: 16px;"><em><span style="word-break: break-word; color: #ffffff;">THE WEEKLY MIX</span></em></span>
-                                    </p>
-                                    <p style="margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px">
-                                      <span style="word-break: break-word; font-size: 46px;"><strong><span style="word-break: break-word; color: #ffffff;">DENVER</span></strong></span>
-                                    </p>
-                                  </div>
-                                </div>
-                              </td>
-                            </tr>
-                          </table>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <table class="row row-2" align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0">
-            <tbody>
-              <tr>
-                <td>
-                  <table class="row-content stack" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#000;border-radius:0;color:#000;width:600px;margin:0 auto" width="600">
-                    <tbody>
-                      <tr>
-                        <td class="column column-1" width="100%" style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:5px;padding-top:5px;vertical-align:top">
-                          <table class="text_block block-2" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;word-break:break-word">
-                            <tr>
-                              <td class="pad" style="padding-bottom:20px;padding-left:10px;padding-right:10px;padding-top:10px">
-                                <div style="font-family:sans-serif">
-                                  <div style="font-size:14px;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;mso-line-height-alt:16.8px;color:#555;line-height:1.2">
-                                    <p style="margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px">
-                                      <span style="word-break: break-word; font-size: 24px;"><strong><span style="word-break: break-word; color: #ffffff;">COMING SOON</span></strong></span>
-                                    </p>
-                                  </div>
-                                </div>
-                              </td>
-                            </tr>
-                          </table>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </td>
-      </tr>
-      ${eventCardsHTML}
-      <tr>
-        <td>
-          <table class="row row-footer" align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#ebebeb">
-            <tbody>
-              <tr>
-                <td>
-                  <table class="row-content stack" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#000;color:#000;width:600px;margin:0 auto" width="600">
-                    <tbody>
-                      <tr>
-                        <td class="column column-1" width="100%" style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;vertical-align:top;padding-bottom:5px;padding-top:5px;">
-                          <table class="text_block block-1" width="100%" border="0" cellpadding="10" cellspacing="0" role="presentation">
-                            <tr>
-                              <td class="pad">
-                                <div style="font-family:sans-serif">
-                                  <div style="font-size:12px;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;mso-line-height-alt:14.4px;color:#555;line-height:1.2">
-                                    <p style="margin:0;text-align:center;font-size:10px;color:#ffffff;">FIND YOUR NEXT EVENT HERE</p>
-                                    <p style="margin:0;text-align:center;font-size:10px;color:#ffffff;margin-top:10px;">© 2026 Events. All rights reserved.</p>
-                                  </div>
-                                </div>
-                              </td>
-                            </tr>
-                          </table>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</body>
-</html>`;
+    html += '</table>';
+
+    const fullHTML = `<!DOCTYPE html><html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en"><head><title>Event Newsletter</title><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{box-sizing:border-box}body{margin:0;padding:0}a[x-apple-data-detectors]{color:inherit!important;text-decoration:inherit!important}#MessageViewBody a{color:inherit;text-decoration:none}p{line-height:inherit}.desktop_hide,.desktop_hide table{mso-hide:all;display:none;max-height:0;overflow:hidden}.image_block img+div{display:none}sub,sup{font-size:75%;line-height:0}@media (max-width:620px){.mobile_hide{display:none}.row-content{width:100%!important}.stack .column{width:100%;display:block}.mobile_hide{min-height:0;max-height:0;max-width:0;overflow:hidden;font-size:0}.desktop_hide,.desktop_hide table{display:table!important;max-height:none!important}}</style></head><body class="body" style="background-color:#ebebeb;margin:0;padding:0;-webkit-text-size-adjust:none;text-size-adjust:none"><table class="nl-container" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#ebebeb"><tbody><tr><td><table class="row row-1" align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0"><tbody><tr><td><table class="row-content stack" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#000;border-radius:0;color:#000;width:600px;margin:0 auto" width="600"><tbody><tr><td class="column column-1" width="100%" style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:5px;padding-top:5px;vertical-align:top"><table class="text_block block-1" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td class="pad" style="padding-left:10px;padding-right:10px;padding-top:25px"><div style="font-family:sans-serif"><div style="font-size:14px;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;mso-line-height-alt:16.8px;color:#555;line-height:1.2"><p style="margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px"><span style="word-break: break-word; font-size: 16px;"><em><span style="word-break: break-word; color: #ffffff;">THE WEEKLY MIX</span></em></span></p><p style="margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px"><span style="word-break: break-word; font-size: 46px;"><strong><span style="word-break: break-word; color: #ffffff;">DENVER</span></strong></span></p></div></div></td></tr></table></td></tr></tbody></table></td></tr></tbody></table></td></tr></tbody></table><table class="row row-2" align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0"><tbody><tr><td><table class="row-content stack" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#000;border-radius:0;color:#000;width:600px;margin:0 auto" width="600"><tbody><tr><td class="column column-1" width="100%" style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:5px;padding-top:5px;vertical-align:top"><table class="text_block block-2" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;word-break:break-word"><tr><td class="pad" style="padding-bottom:20px;padding-left:10px;padding-right:10px;padding-top:10px"><div style="font-family:sans-serif"><div style="font-size:14px;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;mso-line-height-alt:16.8px;color:#555;line-height:1.2"><p style="margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px"><span style="word-break: break-word; font-size: 24px;"><strong><span style="word-break: break-word; color: #ffffff;">COMING SOON</span></strong></span></p></div></div></td></tr></table></td></tr></tbody></table></td></tr></tbody></table>${html}<tr><td><table class="row row-footer" align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#ebebeb"><tbody><tr><td><table class="row-content stack" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace:0;mso-table-rspace:0;background-color:#000;color:#000;width:600px;margin:0 auto" width="600"><tbody><tr><td class="column column-1" width="100%" style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;vertical-align:top;padding-bottom:5px;padding-top:5px;"><table class="text_block block-1" width="100%" border="0" cellpadding="10" cellspacing="0" role="presentation"><tr><td class="pad"><div style="font-family:sans-serif"><div style="font-size:12px;font-family:Arial,Helvetica Neue,Helvetica,sans-serif;mso-line-height-alt:14.4px;color:#555;line-height:1.2"><p style="margin:0;text-align:center;font-size:10px;color:#ffffff;">FIND YOUR NEXT EVENT HERE</p><p style="margin:0;text-align:center;font-size:10px;color:#ffffff;margin-top:10px;">© 2026 Events. All rights reserved.</p></div></div></td></tr></table></td></tr></tbody></table></td></tr></tbody></table></td></tr></tbody></table></body></html>`;
+
+    return fullHTML;
   };
 
   const exportHTML = () => {
@@ -335,8 +113,6 @@ const EventNewsletterBuilder = () => {
       fetchEventById(eventIdInput);
     }
   };
-
-  const htmlContent = previewMode && events.length > 0 ? generateNewsletterHTML() : '';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-8">
@@ -437,10 +213,6 @@ const EventNewsletterBuilder = () => {
                           src={event.image}
                           alt={event.name}
                           className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src =
-                              'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="160"%3E%3Crect fill="%23333" width="200" height="160"/%3E%3Ctext x="50%25" y="50%25" font-size="14" fill="%23666" text-anchor="middle" dy=".3em"%3EImage not available%3C/text%3E%3C/svg%3E';
-                          }}
                         />
                         <div className="absolute top-2 right-2 bg-black bg-opacity-70 px-2 py-1 rounded text-xs font-semibold">
                           #{index + 1}
@@ -475,15 +247,11 @@ const EventNewsletterBuilder = () => {
           </div>
         </div>
 
-        {previewMode && events.length > 0 && htmlContent && (
+        {previewMode && events.length > 0 && (
           <div className="mt-8 bg-gray-800 rounded-lg p-6">
             <h2 className="text-2xl font-bold mb-4">Newsletter Preview</h2>
-            <div className="bg-white rounded overflow-hidden shadow-lg" style={{ maxHeight: '800px' }}>
-              <iframe
-                title="newsletter-preview"
-                srcDoc={htmlContent}
-                style={{ width: '100%', height: '800px', border: 'none' }}
-              />
+            <div className="bg-white rounded overflow-hidden shadow-lg text-center text-gray-600 p-4">
+              <p>Preview will display here when viewing in a browser. Click "Export HTML" to download your newsletter.</p>
             </div>
           </div>
         )}
